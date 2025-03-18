@@ -1,7 +1,8 @@
 :: NOT run in windows powershell
+doskey diff=FC /N $*
 doskey cat=type $*
 doskey rm=del $*
-doskey cat=type $*
+doskey vi=notepad $*
 doskey ll=dir
 doskey gss=git status -s
 doskey gll=git pull
@@ -16,4 +17,5 @@ date /t
 :: in dos, rd img    // just delete a folder named img
 :: git config --list
 :: git config --global init.defaultbranch main
+:: git commit -m "massage"
 
