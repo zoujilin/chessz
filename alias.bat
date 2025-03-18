@@ -12,8 +12,10 @@ doskey gaa=git add $*
 doskey gdf=git diff $*
 doskey gco=git checkout $*
 doskey gls=git ls-files
+doskey bcp="C:\Program Files (x86)\Beyond Compare 3\bcompare.exe" $*
+
 date /t
-:: log some
+:: env to add path
 :: in dos, rd img    // just delete a folder named img
 :: git config --list
 :: git config --global init.defaultbranch main
