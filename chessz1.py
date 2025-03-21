@@ -75,7 +75,7 @@ class ChessGame:
                                (col * SQUARE_SIZE, row * SQUARE_SIZE))
 
         # 绘制选中高亮
-        if self.selected_square:
+        if self.selected_square != None : 
             col = chess.square_file(self.selected_square)
             row = 7 - chess.square_rank(self.selected_square)
             surface = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE))
@@ -99,7 +99,7 @@ class ChessGame:
         square = chess.square(col, row)
 
         # 选择棋子
-        if not self.selected_square:
+        if self.selected_square==None :
             piece = self.board.piece_at(square)
             if piece and piece.color == self.human_color:
                 self.selected_square = square
@@ -109,6 +109,10 @@ class ChessGame:
             move = chess.Move(self.selected_square, square)
             if move in self.board.legal_moves:
                 self.board.push(move)
+                self.screen.fill((0, 0, 0))
+                self.draw_board()
+                pygame.display.flip()
+                #pygame.time.delay(1000)  # by zjl
                 self.check_game_over()
                 if not self.game_over:
                     self.make_ai_move()

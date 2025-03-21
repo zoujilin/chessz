@@ -183,7 +183,7 @@ class ChessGame:
                                (col * SQUARE_SIZE, row * SQUARE_SIZE))
 
         # 绘制选中高亮
-        if self.selected_square:
+        if self.selected_square != None : 
             col = chess.square_file(self.selected_square)
             row = 7 - chess.square_rank(self.selected_square)
             surface = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE))
@@ -198,8 +198,10 @@ class ChessGame:
             self.board.push(best_move)
             self.check_game_over()
 
+
+
     def handle_click(self, pos):
-        """处理玩家点击"""
+        """处理玩家点击（包含升变逻辑）"""
         if self.game_over or self.board.turn != self.human_color:
             return
 
@@ -207,21 +209,83 @@ class ChessGame:
         row = 7 - (pos[1] // SQUARE_SIZE)
         square = chess.square(col, row)
 
-        # 选择棋子
-        if not self.selected_square:
+        # 选择棋子阶段
+        if self.selected_square==None :
             piece = self.board.piece_at(square)
             if piece and piece.color == self.human_color:
                 self.selected_square = square
 
-        # 移动棋子
+        # 移动棋子阶段
         else:
+            from_piece = self.board.piece_at(self.selected_square)
             move = chess.Move(self.selected_square, square)
+            
+            # 检测兵升变条件
+            if from_piece and from_piece.piece_type == chess.PAWN:
+                target_rank = chess.square_rank(square)
+                if (self.human_color == chess.WHITE and target_rank == 7) or \
+                (self.human_color == chess.BLACK and target_rank == 0):
+                    # 显示升变选择菜单
+                    move = self.handle_promotion(move)
+            
             if move in self.board.legal_moves:
                 self.board.push(move)
                 self.check_game_over()
                 if not self.game_over:
                     self.make_ai_move()
             self.selected_square = None
+
+
+
+
+
+
+
+
+
+    def handle_promotion(self, move):
+        """显示升变选择界面"""
+        # 创建选择菜单
+        promotion_pieces = [
+            (chess.QUEEN, "Q"),
+            (chess.ROOK, "R"),
+            (chess.BISHOP, "B"),
+            (chess.KNIGHT, "N")
+        ]
+        
+        # 在棋盘上方绘制选择框
+        menu_width = SQUARE_SIZE * 4
+        menu_height = SQUARE_SIZE
+        menu_x = (chess.square_file(move.to_square) * SQUARE_SIZE) - 1.5 * SQUARE_SIZE
+        menu_y = 50 if self.board.turn == chess.WHITE else BOARD_SIZE - 50 - menu_height
+        
+        # 绘制背景
+        menu_surface = pygame.Surface((menu_width, menu_height))
+        menu_surface.fill((200, 200, 200))
+        
+        # 绘制选项
+        for i, (piece_type, symbol) in enumerate(promotion_pieces):
+            rect = pygame.Rect(i*SQUARE_SIZE, 0, SQUARE_SIZE, SQUARE_SIZE)
+            pygame.draw.rect(menu_surface, (150, 150, 150), rect)
+            
+            # 显示棋子图标
+            color = "w" if self.board.turn == chess.WHITE else "b"
+            piece_key = f"{color}{symbol}"
+            menu_surface.blit(self.pieces[piece_key], (i*SQUARE_SIZE, 0))
+        
+        # 显示菜单并获取选择
+        self.screen.blit(menu_surface, (menu_x, menu_y))
+        pygame.display.flip()
+        
+        # 等待玩家选择
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = pygame.mouse.get_pos()
+                    if menu_x <= x <= menu_x + menu_width and menu_y <= y <= menu_y + menu_height:
+                        index = int((x - menu_x) // SQUARE_SIZE) #式转换为整数
+                        return chess.Move(move.from_square, move.to_square, promotion=promotion_pieces[index][0])
+
 
     def check_game_over(self):
         """检查游戏结束状态"""
